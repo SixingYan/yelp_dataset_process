@@ -4,6 +4,13 @@ SQL_DIR = '/Users/alfonso/Downloads/yelp_dataset_sql/'
 
 MAX_BUFFER = 1000
 
+SQL_SUFFIX = '' # ';'
+
+TRANSFER_DICT = {
+	'True':BooleanSQL.TrueValue.value,
+	'False':BooleanSQL.FalseValue.value,
+	'None':'NULL',
+}
 
 class DataSetPath(Enum):
     Busincess = BASE_DIR + 'yelp_academic_dataset_review.json'

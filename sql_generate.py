@@ -25,7 +25,7 @@ def business_sql_func(v_dict: Dict)->Dict:
     sql_dict = {}
     sql = 'insert into BUSINESS(businessid,) values()'
 
-    sql = 'insert into BUSINESSLOCATION(businessid,) values({0})'
+    sql = 'insert into BUSINESSLOCATION(businessid,city,state,postalcode,address,latitude,longitude) values({0})'
 
     sql = 'insert into BUSINESSHOURS(businessid) values()'
 

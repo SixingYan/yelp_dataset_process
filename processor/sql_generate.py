@@ -23,15 +23,21 @@ def business_sql_func(v_dict: Dict)->Dict:
     @return {"sql_file":['sql','sql'],...}
     """
     sql_dict = {}
-    sql = 'insert into BUSINESS(businessid,) values()'
+    sql = 'insert into BUSINESS(businessid,name,stars,isopen) values({0},{1},{2},{3})'.format(
+        getVarchar(v_dict['business_id']), getVarchar(v_dict['name']), v_dict['stars'], v_dict['is_open'])
 
-    sql = 'insert into BUSINESSLOCATION(businessid,city,state,postalcode,address,latitude,longitude) values({0})'
+    sql = 'insert into BUSINESSLOCATION(businessid,city,state,postalcode,address,latitude,longitude)\
+     values({0},{1},{2},{3},{4},{5},{6})'.format(
+        getVarchar(v_dict['business_id']), getVarchar(
+            v_dict['city']), getVarchar(v_dict['state']),
+        getVarchar(v_dict['postalcode']), getVarchar(v_dict['address']), v_dict['latitude'], v_dict['longitude'])
 
-    sql = 'insert into BUSINESSHOURS(businessid) values()'
+    sql = 'insert into BUSINESSHOURS(businessid,weekday,opentime,closetime) values({0},{1},{2},{3})'.format(getVarchar(
+        v_dict['business_id']), getVarchar(v_dict['business_id']), getVarchar(v_dict['business_id']), getVarchar(v_dict['business_id']))
 
-    sql = 'insert into BUSINESSCATEGORIES(businessid) values()'
+    sql = 'insert into BUSINESSCATEGORIES(businessid,categories) values({0},{1})'
 
-    sql = 'insert into BUSINESSATTRIBUTES(businessid) values()'
+    sql = 'insert into BUSINESSATTRIBUTES(businessid,takeout,garage,street,validated,lot,valet) values({0},{1},{2},{3},{4},{5},{6})'
 
     return sql_dict
 

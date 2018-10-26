@@ -1,7 +1,7 @@
 from typing import Dict
-
+import re
 from constant import SQL_SUFFIX, TRANSFER_DICT, NULL_VALUE
-
+RESTR = "[\s+\!\/_$%^*(+\"\']+|[+——！，。？、~@#￥%……&*（）]+"
 func_dict = {
     "business": business_sql_func,
     "user": user_sql_func,
@@ -9,6 +9,8 @@ func_dict = {
     "review": review_sql_func,
     "checkin": checkin_sql_func
 }
+
+[]
 
 
 def generate_sql(v_dict: Dict, entity: str)->Dict:
@@ -23,27 +25,63 @@ def business_sql_func(v_dict: Dict)->Dict:
     @return {"sql_file":['sql','sql'],...}
     """
     sql_dict = {}
+    # 
     sql = 'insert into BUSINESS(businessid,name,stars,isopen) values({0},{1},{2},{3})'.format(
         getVarchar(v_dict['business_id']), getVarchar(v_dict['name']), v_dict['stars'], v_dict['is_open'])
+    sql_dict['business'] = sql
 
+    # 
     sql = 'insert into BUSINESSLOCATION(businessid,city,state,postalcode,address,latitude,longitude)\
      values({0},{1},{2},{3},{4},{5},{6})'.format(
         getVarchar(v_dict['business_id']), getVarchar(
             v_dict['city']), getVarchar(v_dict['state']),
         getVarchar(v_dict['postalcode']), getVarchar(v_dict['address']), v_dict['latitude'], v_dict['longitude'])
+    sql_dict['business_location'] = sql
 
-    sql = 'insert into BUSINESSHOURS(businessid,weekday,opentime,closetime) values({0},{1},{2},{3})'.format(getVarchar(
-        v_dict['business_id']), getVarchar(v_dict['business_id']), getVarchar(v_dict['business_id']), getVarchar(v_dict['business_id']))
+    # 
+    sql_dict['business_hours'] = []
+    for dow in v_dict['hours'].keys():
+        opentime, closetime = v_dict['hours'][dow].split('-')
+        sql = 'insert into BUSINESSHOURS(businessid,weekday,opentime,closetime) values({0},{1},{2},{3})'.format(getVarchar(
+            v_dict['business_id']), dow, getVarchar(opentime), getVarchar(closetime))
+        sql_dict['business_hours'].append(sql)
 
-    sql = 'insert into BUSINESSCATEGORIES(businessid,categories) values({0},{1})'
+    # 
+    sql_dict['business_categories'] = []
+    categories = [c.strip() for c in v_dict['categories'].split(',')]
+    for c in categories:
+        sql = 'insert into BUSINESSCATEGORIES(businessid,categories) values({0},{1})'.format(
+            getVarchar(v_dict['business_id']), getVarchar(c))
+        sql_dict['business_hours'].append(sql)
 
-    sql = 'insert into BUSINESSATTRIBUTES(businessid,takeout,garage,street,validated,lot,valet) values({0},{1},{2},{3},{4},{5},{6})'
+    # 
+    takeout = transfer_keyword(v_dict['attributes'][
+                               'RestaurantsTakeOut']) if 'RestaurantsTakeOut' in v_dict['attributes'] else 'NULL'
+
+    if 'BusinessParking' in v_dict['attributes']:
+        bdict = v_dict['attributes']['BusinessParking']
+        garage = transfer_keyword(
+            bdict['garage']) if 'garage' in bdict.keys() else 'NULL'
+        street = transfer_keyword(
+            bdict['street']) if 'street' in bdict.keys() else 'NULL'
+        validated = transfer_keyword(
+            bdict['validated']) if 'validated' in bdict.keys() else 'NULL'
+        lot = transfer_keyword(
+            bdict['lot']) if 'lot' in bdict.keys() else 'NULL'
+        valet = transfer_keyword(
+            bdict['valet']) if 'valet' in bdict.keys() else 'NULL'
+
+    sql = 'insert into BUSINESSATTRIBUTES(businessid,takeout,garage,street,validated,lot,valet) values({0},{1},{2},{3},{4},{5},{6})'.format(getVarchar(
+        v_dict['business_id']), takeout, garage, street, validated, lot, valet)
+
+    sql_dict['business_attributes'] = sql
 
     return sql_dict
 
 
 def user_sql_func(v_dict: Dict)->Dict:
     """
+    OK
     """
     sql_dict = {}
     sql = 'insert into USER(userid,useful,funny,cool) values({0},{1},{2},{3})'.format(
@@ -61,13 +99,13 @@ def user_sql_func(v_dict: Dict)->Dict:
 
 def tips_sql_func(v_dict: Dict)->Dict:
     """
+    OK
     """
     sql_dict = {}
 
-    sql = 'insert into TIPS(userid,businessid,likes,date,text) \
-    values({0},{1},{2},{3},{4})'\
-    .format(getVarchar(v_dict['user_id']), getVarchar(v_dict['business_id']), v_dict['likes'],
-            getVarchar(v_dict['date']), getVarchar(v_dict['text']))
+    sql = 'insert into TIPS(userid,businessid,likes,date,text) values({0},{1},{2},{3},{4})'\
+        .format(getVarchar(v_dict['user_id']), getVarchar(v_dict['business_id']), v_dict['likes'],
+                getVarchar(v_dict['date']), getVarchar(cleanText(v_dict['text'])))
 
     sql_dict['tips'] = [sql + SQL_SUFFIX]
 
@@ -76,15 +114,15 @@ def tips_sql_func(v_dict: Dict)->Dict:
 
 def review_sql_func(v_dict: Dict)->Dict:
     """
+    OK
     """
     sql_dict = {}
 
-    sql = 'insert into REVIEW(reviewid,businessid,userid,cool,funny,stars,useful,date,text)\
-     values({0},{1},{2},{3},{4},{5},{6},{7},{8})'\
-     .format(getVarchar(v_dict['review_id']), getVarchar(v_dict['business_id']), getVarchar(v_dict['user_id']),
-             v_dict['cool'], v_dict['funny'], v_dict[
-                 'stars'], v_dict['useful'],
-             getVarchar(v_dict['date']), getVarchar(v_dict['text']))
+    sql = 'insert into REVIEW(reviewid,businessid,userid,cool,funny,stars,useful,date,text) values({0},{1},{2},{3},{4},{5},{6},{7},{8})'\
+        .format(getVarchar(v_dict['review_id']), getVarchar(v_dict['business_id']), getVarchar(v_dict['user_id']),
+                v_dict['cool'], v_dict['funny'], v_dict[
+            'stars'], v_dict['useful'],
+            getVarchar(v_dict['date']), getVarchar(cleanText(v_dict['text'])))
 
     sql_dict['review'] = [sql + SQL_SUFFIX]
 
@@ -93,15 +131,15 @@ def review_sql_func(v_dict: Dict)->Dict:
 
 def checkin_sql_func(v_dict: Dict)->Dict:
     """
+    OK
     """
     sql_dict = {}
     sql_dict['checkin'] = []
 
     for time in v_dict['time'].keys():
         dow, clock = time.split('-')
-        sql = 'insert into CHECKIN(businessid,weekday,time,count) \
-        values({0},{1},{2},{3})'\
-        .format(getVarchar(v_dict['business_id']), weekday, time, v_dict['time'][time])
+        sql = 'insert into CHECKIN(businessid,weekday,time,count) values({0},{1},{2},{3})'\
+            .format(getVarchar(v_dict['business_id']), getVarchar(dow), clock, v_dict['time'][time])
         sql_dict['checkin'].append(sql + SQL_SUFFIX)
 
     return sql_dict
@@ -110,8 +148,16 @@ def checkin_sql_func(v_dict: Dict)->Dict:
 def transfer_keyword(v: str):
     """
     """
-    if v in TRANSFER_DICT.keys():
-        return TRANSFER_DICT[v]
+    return 1 if v == 'True' else 0
+
+    #if v in TRANSFER_DICT.keys():
+    #    return TRANSFER_DICT[v]
+
+
+def cleanText(text: str):
+    """
+    """
+    return re.sub(RESTR, " ", text)
 
 
 def getVarchar(v: str):

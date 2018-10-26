@@ -3,7 +3,7 @@ import json
 import sql_generate as sg
 import string_tool as st
 
-from constant import DataSetPath 
+from constant import DataSetPath
 from WriteTextOptClass import WriteTextOpt
 
 wtp = WriteTextOpt()
@@ -35,7 +35,7 @@ def sql_to_text(sql_dict: Dict):
     wtp.flush()
 
 
-def preprocess(path, sql_func, func=None):
+def preprocess(fromPath, sql_func, func=None):
     """
     """
     with open(path, 'r') as f:
@@ -52,7 +52,6 @@ def preprocess(path, sql_func, func=None):
 
 def main():
     path = DataSetPath.Business.value
-
     preprocess(path, sg.business_sql, st.edit_json)
 
 

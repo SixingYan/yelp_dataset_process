@@ -21,24 +21,23 @@ def generate_sql(v_dict: Dict, entity: str)->Dict:
 
 def business_sql_func(v_dict: Dict)->Dict:
     """
-    @input {"attribute":"value"}
-    @return {"sql_file":['sql','sql'],...}
+    OK
     """
     sql_dict = {}
-    # 
+    #
     sql = 'insert into BUSINESS(businessid,name,stars,isopen) values({0},{1},{2},{3})'.format(
         getVarchar(v_dict['business_id']), getVarchar(v_dict['name']), v_dict['stars'], v_dict['is_open'])
     sql_dict['business'] = sql
 
-    # 
+    #
     sql = 'insert into BUSINESSLOCATION(businessid,city,state,postalcode,address,latitude,longitude)\
      values({0},{1},{2},{3},{4},{5},{6})'.format(
         getVarchar(v_dict['business_id']), getVarchar(
             v_dict['city']), getVarchar(v_dict['state']),
-        getVarchar(v_dict['postalcode']), getVarchar(v_dict['address']), v_dict['latitude'], v_dict['longitude'])
+        getVarchar(v_dict['postal_code']), getVarchar(v_dict['address']), v_dict['latitude'], v_dict['longitude'])
     sql_dict['business_location'] = sql
 
-    # 
+    #
     sql_dict['business_hours'] = []
     for dow in v_dict['hours'].keys():
         opentime, closetime = v_dict['hours'][dow].split('-')
@@ -46,35 +45,20 @@ def business_sql_func(v_dict: Dict)->Dict:
             v_dict['business_id']), dow, getVarchar(opentime), getVarchar(closetime))
         sql_dict['business_hours'].append(sql)
 
-    # 
+    #
     sql_dict['business_categories'] = []
-    categories = [c.strip() for c in v_dict['categories'].split(',')]
+    categories = [c.strip() for c in v_dict['categories'].split(', ')]
     for c in categories:
         sql = 'insert into BUSINESSCATEGORIES(businessid,categories) values({0},{1})'.format(
             getVarchar(v_dict['business_id']), getVarchar(c))
-        sql_dict['business_hours'].append(sql)
+        sql_dict['business_categories'].append(sql)
 
-    # 
-    takeout = transfer_keyword(v_dict['attributes'][
-                               'RestaurantsTakeOut']) if 'RestaurantsTakeOut' in v_dict['attributes'] else 'NULL'
-
-    if 'BusinessParking' in v_dict['attributes']:
-        bdict = v_dict['attributes']['BusinessParking']
-        garage = transfer_keyword(
-            bdict['garage']) if 'garage' in bdict.keys() else 'NULL'
-        street = transfer_keyword(
-            bdict['street']) if 'street' in bdict.keys() else 'NULL'
-        validated = transfer_keyword(
-            bdict['validated']) if 'validated' in bdict.keys() else 'NULL'
-        lot = transfer_keyword(
-            bdict['lot']) if 'lot' in bdict.keys() else 'NULL'
-        valet = transfer_keyword(
-            bdict['valet']) if 'valet' in bdict.keys() else 'NULL'
-
-    sql = 'insert into BUSINESSATTRIBUTES(businessid,takeout,garage,street,validated,lot,valet) values({0},{1},{2},{3},{4},{5},{6})'.format(getVarchar(
-        v_dict['business_id']), takeout, garage, street, validated, lot, valet)
-
-    sql_dict['business_attributes'] = sql
+    #
+    sql_dict['business_attributes'] = []
+    for a in v_dict['attributes'].keys():
+        sql = 'insert into BUSINESSATTRIBUTES(businessid,attribute,status) values({0},{1},{2})'.format(getVarchar(
+            v_dict['business_id']), getVarchar(a), getVarchar(v_dict['attributes'][a]))
+        sql_dict['business_attributes'].append(sql)
 
     return sql_dict
 
@@ -143,15 +127,6 @@ def checkin_sql_func(v_dict: Dict)->Dict:
         sql_dict['checkin'].append(sql + SQL_SUFFIX)
 
     return sql_dict
-
-
-def transfer_keyword(v: str):
-    """
-    """
-    return 1 if v == 'True' else 0
-
-    #if v in TRANSFER_DICT.keys():
-    #    return TRANSFER_DICT[v]
 
 
 def cleanText(text: str):

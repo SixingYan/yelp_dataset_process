@@ -21,7 +21,6 @@ def generate_sql(v_dict: Dict, entity: str)->Dict:
 
 def business_sql_func(v_dict: Dict)->Dict:
     """
-    OK
     """
     sql_dict = {}
     #
@@ -65,25 +64,23 @@ def business_sql_func(v_dict: Dict)->Dict:
 
 def user_sql_func(v_dict: Dict)->Dict:
     """
-    OK
     """
     sql_dict = {}
     sql = 'insert into USER(userid,useful,funny,cool) values({0},{1},{2},{3})'.format(
         getVarchar(v_dict['user_id']), v_dict['useful'], v_dict['funny'], v_dict['cool'])
-    sql_dict['user'] = [sql + SQL_SUFFIX]
+    sql_dict['user'] = [sql]
 
     sql_dict['user_follow'] = []
     if v_dict['friends'] != NULL_VALUE:
         for user_id in v_dict['friends']:
             sql = 'insert into USERFOLLOW(userid,following) values({0},{1})'.format(
                 getVarchar(v_dict['user_id']), getVarchar(user_id))
-            sql_dict['user_follow'].append(sql + SQL_SUFFIX)
+            sql_dict['user_follow'].append(sql)
     return sql_dict
 
 
 def tips_sql_func(v_dict: Dict)->Dict:
     """
-    OK
     """
     sql_dict = {}
 
@@ -91,14 +88,13 @@ def tips_sql_func(v_dict: Dict)->Dict:
         .format(getVarchar(v_dict['user_id']), getVarchar(v_dict['business_id']), v_dict['likes'],
                 getVarchar(v_dict['date']), getVarchar(cleanText(v_dict['text'])))
 
-    sql_dict['tips'] = [sql + SQL_SUFFIX]
+    sql_dict['tips'] = [sql]
 
     return sql_dict
 
 
 def review_sql_func(v_dict: Dict)->Dict:
     """
-    OK
     """
     sql_dict = {}
 
@@ -108,14 +104,13 @@ def review_sql_func(v_dict: Dict)->Dict:
             'stars'], v_dict['useful'],
             getVarchar(v_dict['date']), getVarchar(cleanText(v_dict['text'])))
 
-    sql_dict['review'] = [sql + SQL_SUFFIX]
+    sql_dict['review'] = [sql]
 
     return sql_dict
 
 
 def checkin_sql_func(v_dict: Dict)->Dict:
     """
-    OK
     """
     sql_dict = {}
     sql_dict['checkin'] = []
@@ -124,7 +119,7 @@ def checkin_sql_func(v_dict: Dict)->Dict:
         dow, clock = time.split('-')
         sql = 'insert into CHECKIN(businessid,weekday,time,count) values({0},{1},{2},{3})'\
             .format(getVarchar(v_dict['business_id']), getVarchar(dow), clock, v_dict['time'][time])
-        sql_dict['checkin'].append(sql + SQL_SUFFIX)
+        sql_dict['checkin'].append(sql)
 
     return sql_dict
 
